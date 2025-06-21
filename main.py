@@ -57,3 +57,18 @@ def get_forecast(lat: float = 35.6895, lon: float = 139.6917):
 
     return {"forecast": forecast}
 
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
+
+# 静的ファイル（CSSなど）を /static にマウント
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# テンプレートのディレクトリを指定
+templates = Jinja2Templates(directory="templates")
+
+# ルートパスで index.html を返す
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})

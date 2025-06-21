@@ -1,0 +1,171 @@
+/* ベース設定 */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 1rem;
+  background-color: white;
+  color: black;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+/* 天気カード */
+.weather-card {
+  background-color: rgba(240, 240, 240, 0.8);
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 1.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.weather-card p {
+  margin: 0.6rem 0;
+  font-size: 1.1rem;
+}
+
+/* ボタン */
+button {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+/* 🌙 ダークモード対応（自動） */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #111;
+    color: #eee;
+  }
+
+  .weather-card {
+    background-color: rgba(40, 40, 40, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  button {
+    background-color: #3399ff;
+    color: #111;
+  }
+
+  button:hover {
+    background-color: #66b3ff;
+  }
+}
+
+/* 📱 レスポンシブ対応 */
+@media screen and (max-width: 480px) {
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  button {
+    width: 100%;
+    font-size: 1.1rem;
+  }
+
+  .weather-card p {
+    font-size: 1rem;
+  }
+}
+
+/* 🔍 地名検索欄のスタイル */
+.search-section {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+#location-input {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  flex: 1 1 60%;
+  max-width: 300px;
+}
+
+#search-weather-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background-color: #444;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#search-weather-btn:hover {
+  background-color: #666;
+}
+
+/* 📱 スマホ向け調整強化 */
+@media screen and (max-width: 480px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .search-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #location-input,
+  #search-weather-btn {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  button {
+    font-size: 1.1rem;
+    padding: 0.8rem;
+  }
+}
+/* 🌐 多言語対応 */
+
+/* 🔄 ローディングスピナー */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1.5rem;
+  color: #666;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid #ccc;
+  border-top: 4px solid #0077cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+/* 回転アニメーション */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
