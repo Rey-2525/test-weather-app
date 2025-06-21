@@ -1,3 +1,10 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# OpenWeatherMapのAPIキーを環境変数から取得
+API_KEY = os.environ.get("OPENWEATHER_API_KEY")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import requests
@@ -12,8 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-API_KEY = "d72e36dfc0902f1533ed5c15c2ab90ab"  # ← 自分のOpenWeatherMap APIキーに置き換え
 
 @app.get("/weather")
 def get_weather(lat: float = 35.6895, lon: float = 139.6917):
