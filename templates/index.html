@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>現在地の天気情報</title>
+  <link rel="stylesheet" href="style-dark.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🌤 現在地の天気情報</h1>
+    <button id="get-weather-btn" type="button">現在地の天気を取得</button>
+    <div id="weather" class="weather-card" style="display: none;"></div>
+    <div id="loading" class="loading-spinner" style="display: none;">
+      <p>天気情報を取得中...</p>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    function showWeather(data) {
+      const el = document.getElementById("weather");
+      el.style.display = "block";
+      const iconUrl = `http://openweathermap.org/img/wn/${data.icon}@2x.png`;
+      el.innerHTML = `
+        <p><strong>📍 場所：</strong> ${data.location}</p>
+        <p><strong>🌡️ 気温：</strong> ${data.temperature}℃</p>
+        <p><strong>💧 湿度：</strong> ${data.humidity}%</p>
+        <p><strong>☁️ 天気：</strong> ${data.weather}</p>
+      `;
+    }
+
+    function showloading(show) {
+        document.getElementById("loading").style.display = show ? "flex" : "none";
+      }
+
+    function getWeather(lat, lon) {
+      showloading(true);// ここでローディング表示を開始
+      fetch(`http://127.0.0.1:8000/weather?lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => showWeather(data))
+        .catch(err => {
+          document.getElementById("weather").style.display = "block";
+          document.getElementById("weather").textContent = "取得に失敗しました。";
+          console.error(err);
+        })
+        .finally(() => showloading(false)); // ここでローディング表示を終了
+    }
+
+    function getForecast(lat, lon) {
+      showloading(true); // ローディング表示を開始
+
+      const existing = document.getElementById("forecast");
+      if (existing) existing.remove();
+
+      fetch(`http://127.0.0.1:8000/weather-forecast?lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+          const forecastDiv = document.createElement("div");
+          forecastDiv.id = "forecast";
+          forecastDiv.innerHTML = "<h3>☔ 降水確率（3時間ごと）</h3>";
+          const ul = document.createElement("ul");
+
+          data.forecast.forEach(entry => {
+            const li = document.createElement("li");
+            li.textContent = `${entry.time}：${entry.pop}%`;
+            ul.appendChild(li);
+          });
+
+          forecastDiv.appendChild(ul);
+
+          const canvas = document.createElement("canvas");
+          canvas.id = "precipChart";
+          forecastDiv.appendChild(canvas);
+
+          const labels = data.forecast.map(entry => entry.time.slice(11, 16));
+          const pops = data.forecast.map(entry => entry.pop);
+
+          new Chart(canvas, {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: "降水確率 (%)",
+                data: pops,
+                backgroundColor: "rgba(54, 162, 235, 0.6)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  ticks: {
+                    callback: value => value + "%"
+                  }
+                }
+              },
+              plugins: {
+                legend: {
+                  labels: {
+                    color: "#fff"
+                  }
+                }
+              }
+            }
+          });
+
+          document.getElementById("weather").appendChild(forecastDiv);
+        })
+        .catch(err => console.error("予報取得に失敗しました", err))
+        .finally(() => showloading(false)); // ローディング表示を終了
+    }
+
+    document.getElementById("get-weather-btn").addEventListener("click", (event) => {
+      event.preventDefault();
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            getWeather(latitude, longitude);
+            getForecast(latitude, longitude);
+          },
+          (error) => {
+            document.getElementById("weather").style.display = "block";
+            document.getElementById("weather").textContent = "位置情報が取得できませんでした。";
+          }
+        );
+      } else {
+        document.getElementById("weather").style.display = "block";
+        document.getElementById("weather").textContent = "このブラウザは位置情報に対応していません。";
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
