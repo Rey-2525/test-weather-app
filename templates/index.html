@@ -36,7 +36,7 @@
 
     function getWeather(lat, lon) {
       showloading(true);// ここでローディング表示を開始
-      fetch(`http://127.0.0.1:8000/weather?lat=${lat}&lon=${lon}`)
+      fetch(`/weather?lat=${lat}&lon=${lon}`)
         .then(res => res.json())
         .then(data => showWeather(data))
         .catch(err => {
@@ -53,7 +53,7 @@
       const existing = document.getElementById("forecast");
       if (existing) existing.remove();
 
-      fetch(`http://127.0.0.1:8000/weather-forecast?lat=${lat}&lon=${lon}`)
+      fetch(`/weather-forecast?lat=${lat}&lon=${lon}`)
         .then(res => res.json())
         .then(data => {
           const forecastDiv = document.createElement("div");
