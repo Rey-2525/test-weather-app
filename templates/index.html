@@ -17,7 +17,12 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    function showloading(show) {
+      document.getElementById("loading").style.display = show ? "flex" : "none";
+    }
+
     function showWeather(data) {
       const el = document.getElementById("weather");
       el.style.display = "block";
@@ -30,89 +35,87 @@
       `;
     }
 
-    function showloading(show) {
-        document.getElementById("loading").style.display = show ? "flex" : "none";
-      }
-
-    function getWeather(lat, lon) {
-      showloading(true);// ここでローディング表示を開始
-      fetch(`/weather?lat=${lat}&lon=${lon}`)
-        .then(res => res.json())
-        .then(data => showWeather(data))
-        .catch(err => {
-          document.getElementById("weather").style.display = "block";
-          document.getElementById("weather").textContent = "取得に失敗しました。";
-          console.error(err);
-        })
-        .finally(() => showloading(false)); // ここでローディング表示を終了
+    async function getWeather(lat, lon) {
+      const res = await fetch(`/weather?lat=${lat}&lon=${lon}`);
+      const data = await res.json();
+      showWeather(data);
     }
 
-    function getForecast(lat, lon) {
-      showloading(true); // ローディング表示を開始
-
+    async function getForecast(lat, lon) {
       const existing = document.getElementById("forecast");
       if (existing) existing.remove();
 
-      fetch(`/weather-forecast?lat=${lat}&lon=${lon}`)
-        .then(res => res.json())
-        .then(data => {
-          const forecastDiv = document.createElement("div");
-          forecastDiv.id = "forecast";
-          forecastDiv.innerHTML = "<h3>☔ 降水確率（3時間ごと）</h3>";
-          const ul = document.createElement("ul");
+      const res = await fetch(`/weather-forecast?lat=${lat}&lon=${lon}`);
+      const data = await res.json();
 
-          data.forecast.forEach(entry => {
-            const li = document.createElement("li");
-            li.textContent = `${entry.time}：${entry.pop}%`;
-            ul.appendChild(li);
-          });
+      const forecastDiv = document.createElement("div");
+      forecastDiv.id = "forecast";
+      forecastDiv.innerHTML = "<h3>☔ 降水確率（3時間ごと）</h3>";
+      const ul = document.createElement("ul");
 
-          forecastDiv.appendChild(ul);
+      data.forecast.forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = `${entry.time}：${entry.pop}%`;
+        ul.appendChild(li);
+      });
 
-          const canvas = document.createElement("canvas");
-          canvas.id = "precipChart";
-          forecastDiv.appendChild(canvas);
+      forecastDiv.appendChild(ul);
 
-          const labels = data.forecast.map(entry => entry.time.slice(11, 16));
-          const pops = data.forecast.map(entry => entry.pop);
+      const canvas = document.createElement("canvas");
+      canvas.id = "precipChart";
+      forecastDiv.appendChild(canvas);
 
-          new Chart(canvas, {
-            type: "bar",
-            data: {
-              labels: labels,
-              datasets: [{
-                label: "降水確率 (%)",
-                data: pops,
-                backgroundColor: "rgba(54, 162, 235, 0.6)",
-                borderColor: "rgba(54, 162, 235, 1)",
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  max: 100,
-                  ticks: {
-                    callback: value => value + "%"
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  labels: {
-                    color: "#fff"
-                  }
-                }
+      document.getElementById("weather").appendChild(forecastDiv);
+
+      const labels = data.forecast.map(entry => entry.time.slice(11, 16));
+      const pops = data.forecast.map(entry => entry.pop);
+
+      new Chart(canvas, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "降水確率 (%)",
+            data: pops,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: value => value + "%"
               }
             }
-          });
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: "#fff"
+              }
+            }
+          }
+        }
+      });
+    }
 
-          document.getElementById("weather").appendChild(forecastDiv);
-        })
-        .catch(err => console.error("予報取得に失敗しました", err))
-        .finally(() => showloading(false)); // ローディング表示を終了
+    async function fetchAll(lat, lon) {
+      try {
+        showloading(true);
+        await getWeather(lat, lon);
+        await getForecast(lat, lon);
+      } catch (err) {
+        document.getElementById("weather").style.display = "block";
+        document.getElementById("weather").textContent = "取得に失敗しました。";
+        console.error(err);
+      } finally {
+        showloading(false);
+      }
     }
 
     document.getElementById("get-weather-btn").addEventListener("click", (event) => {
@@ -121,8 +124,7 @@
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
-            getWeather(latitude, longitude);
-            getForecast(latitude, longitude);
+            fetchAll(latitude, longitude);
           },
           (error) => {
             document.getElementById("weather").style.display = "block";
@@ -135,6 +137,5 @@
       }
     });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
