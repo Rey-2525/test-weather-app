@@ -10,6 +10,7 @@
   <div class="container">
     <h1>🌤 現在地の天気情報</h1>
     <button id="get-weather-btn" type="button">現在地の天気を取得</button>
+    <div id="explanation-box" class="weather-card" style="display: none;"></div>
     <div id="weather" class="weather-card" style="display: none;"></div>
     <div id="loading" class="loading-spinner" style="display: none;">
       <p>天気情報を取得中...</p>
@@ -40,6 +41,25 @@
       const data = await res.json();
       showWeather(data);
     }
+
+    async function getExplanation(location, weather, temp, humidity, pop) {
+      const res = await fetch('/explanation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location,
+          weather,
+          temp,
+          humidity,
+          pop: pop / 100  // 小数（例：0.2）
+        })
+      });
+      const data = await res.json();
+      const box = document.getElementById("explanation-box");
+      box.style.display = "block";
+      box.innerHTML = `<p><strong>📝 解説：</strong> ${data.explanation}</p>`;
+}
+
 
     async function getForecast(lat, lon) {
       const existing = document.getElementById("forecast");
@@ -107,8 +127,27 @@
     async function fetchAll(lat, lon) {
       try {
         showloading(true);
-        await getWeather(lat, lon);
+
+        // 🌤 現在の天気データ取得
+        const weatherRes = await fetch(`/weather?lat=${lat}&lon=${lon}`);
+        const weatherData = await weatherRes.json();
+        showWeather(weatherData);
+
+        // ☔ 降水確率の取得＆グラフ表示
+        const forecastRes = await fetch(`/weather-forecast?lat=${lat}&lon=${lon}`);
+        const forecastData = await forecastRes.json();
         await getForecast(lat, lon);
+
+        // 🧠 GPTで天気解説文生成（最初の降水確率を使う）
+        const pop = forecastData.forecast[0]?.pop || 0;
+        await getExplanation(
+          weatherData.location,
+          weatherData.weather,
+          weatherData.temperature,
+          weatherData.humidity,
+          pop
+        );
+
       } catch (err) {
         document.getElementById("weather").style.display = "block";
         document.getElementById("weather").textContent = "取得に失敗しました。";
@@ -117,6 +156,7 @@
         showloading(false);
       }
     }
+
 
     document.getElementById("get-weather-btn").addEventListener("click", (event) => {
       event.preventDefault();
