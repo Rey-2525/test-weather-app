@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routes import weather, view, explanation  # explanation は後で
+from routes import weather, view, explanation
 
 app = FastAPI()
 

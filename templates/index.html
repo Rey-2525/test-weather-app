@@ -11,6 +11,7 @@
     <h1>🌤 現在地の天気情報</h1>
     <button id="get-weather-btn" type="button">現在地の天気を取得</button>
     <div id="explanation-box" class="weather-card" style="display: none;"></div>
+    <div id="clothing-box" class="weather-card" style="display: none;"></div>
     <div id="weather" class="weather-card" style="display: none;"></div>
     <div id="loading" class="loading-spinner" style="display: none;">
       <p>天気情報を取得中...</p>
@@ -58,6 +59,19 @@
       const box = document.getElementById("explanation-box");
       box.style.display = "block";
       box.innerHTML = `<p><strong>📝 解説：</strong> ${data.explanation}</p>`;
+}
+
+    async function getClothingAdvice(weather, temp, humidity) {
+      const res = await fetch("/clothing_advice", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weather, temp, humidity })
+      });
+
+        const data = await res.json();
+        const box = document.getElementById("clothing-box");
+        box.style.display = "block";
+        box.innerHTML = `<p><strong>🧥 服装アドバイス：</strong> ${data.advice}</p>`;
 }
 
 
@@ -148,6 +162,12 @@
           pop
         );
 
+        await getClothingAdvice(
+        weatherData.weather,
+        weatherData.temperature,
+        weatherData.humidity
+      );
+
       } catch (err) {
         document.getElementById("weather").style.display = "block";
         document.getElementById("weather").textContent = "取得に失敗しました。";
@@ -155,6 +175,7 @@
       } finally {
         showloading(false);
       }
+
     }
 
 
@@ -169,6 +190,12 @@
           (error) => {
             document.getElementById("weather").style.display = "block";
             document.getElementById("weather").textContent = "位置情報が取得できませんでした。";
+            console.error("位置情報の取得に失敗:", error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout:10000, // 10秒
+            maximumAge: 0
           }
         );
       } else {
