@@ -37,6 +37,15 @@
       `;
     }
 
+    function addChatMessage(sender, message) {
+      const chatBox = document.getElementById("chat-box");
+      const div = document.createElement("div");
+      div.className = `chat-message ${sender}`;
+      div.textContent = message;
+      chatBox.appendChild(div);
+}
+
+
     async function getWeather(lat, lon) {
       const res = await fetch(`/weather?lat=${lat}&lon=${lon}`);
       const data = await res.json();
@@ -154,12 +163,18 @@
 
         // 🧠 GPTで天気解説文生成（最初の降水確率を使う）
         const pop = forecastData.forecast[0]?.pop || 0;
-        await getExplanation(
+        const explanation = await getExplanation(
           weatherData.location,
           weatherData.weather,
           weatherData.temperature,
           weatherData.humidity,
           pop
+        );
+
+        const advice = await getClothingAdvice(
+          weatherData.weather,
+          weatherData.temperature,
+          weatherData.humidity
         );
 
         await getClothingAdvice(

@@ -13,10 +13,11 @@ async def generate_weather_explanation(data):
     pop = int(data.get("pop", 0) * 100)
 
     prompt = (
-        f"次のデータに基づいて、日本語で自然な天気解説文を作ってください。\n"
-        f"場所: {location}、天気: {weather}、気温: {temp}℃、湿度: {humidity}％、降水確率: {pop}％。\n"
-        f"やや親しみやすい口調で、天気の印象をわかりやすく100文字以内で表現してください。"
-    )
+    f"以下の天気データをもとに、少し大人びた、落ち着いた色気を感じさせる日本語で天気解説文を作成してください。\n"
+    f"場所: {location}、天気: {weather}、気温: {temp}℃、湿度: {humidity}％、降水確率: {pop}％。\n"
+    f"しっとりとした語り口で、情緒や雰囲気を大切にしながら、100文字以内で表現してください。"
+)
+
 
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
@@ -34,10 +35,12 @@ async def generate_clothing_advice(data):
     weather = data.get("weather", "不明")
 
     prompt = (
-        f"天気: {weather}、気温: {temp}℃、湿度: {humidity}％の条件で、"
-        f"その日の服装アドバイスを日本語で1文でください。"
-        f"例：Tシャツがちょうどよい、軽い上着があると安心、など。"
-    )
+    f"以下の天気データをもとに、服装アドバイスを日本語で作成してください。\n"
+    f"天気: {weather}、気温: {temp}℃、湿度: {humidity}％。\n"
+    f"やさしく落ち着いた口調で、ほんのり色気と大人の余裕を感じさせる文章をお願いします。\n"
+    f"気温や湿度の体感も含めて、体調を気遣うようなアドバイスを100文字以内で表現してください。"
+)
+
 
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
