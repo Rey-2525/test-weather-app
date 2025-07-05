@@ -19,6 +19,12 @@
     </div>
   </div>
 
+  <div class="search-section">
+  <input type="text" id="location-input" placeholder="都市名を入力（例：大阪）">
+  <button id="search-weather-btn">天気を検索</button>
+  </div>
+
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     function showloading(show) {
@@ -163,7 +169,7 @@
 
         // 🧠 GPTで天気解説文生成（最初の降水確率を使う）
         const pop = forecastData.forecast[0]?.pop || 0;
-        const explanation = await getExplanation(
+        await getExplanation(
           weatherData.location,
           weatherData.weather,
           weatherData.temperature,
@@ -171,17 +177,12 @@
           pop
         );
 
-        const advice = await getClothingAdvice(
+        // 👕 服装アドバイス生成
+        await getClothingAdvice(
           weatherData.weather,
           weatherData.temperature,
           weatherData.humidity
         );
-
-        await getClothingAdvice(
-        weatherData.weather,
-        weatherData.temperature,
-        weatherData.humidity
-      );
 
       } catch (err) {
         document.getElementById("weather").style.display = "block";
@@ -190,8 +191,8 @@
       } finally {
         showloading(false);
       }
-
     }
+
 
 
     document.getElementById("get-weather-btn").addEventListener("click", (event) => {
@@ -218,6 +219,33 @@
         document.getElementById("weather").textContent = "このブラウザは位置情報に対応していません。";
       }
     });
+
+    document.getElementById("search-weather-btn").addEventListener("click", async () => {
+  const city = document.getElementById("location-input").value.trim();
+  if (!city) return;
+
+  try {
+    showloading(true);
+    const res = await fetch("/geocode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ city })
+    });
+
+    const data = await res.json();
+    if (data.lat && data.lon) {
+      fetchAll(data.lat, data.lon);
+    } else {
+      alert("場所が見つかりませんでした。");
+    }
+  } catch (err) {
+    console.error("地名検索に失敗しました:", err);
+    alert("エラーが発生しました。");
+  } finally {
+    showloading(false);
+  }
+});
+
   </script>
 </body>
 </html>
